@@ -1,0 +1,44 @@
+# Example study config
+seed: 42
+
+data:
+  # For MVP, we generate synthetic regression data; replace with your paths
+  kind: "synthetic_regression"
+  n_samples: 2000
+  n_features: 20
+  noise: 0.2
+
+split:
+  type: "kfold"
+  n_splits: 5
+  stratify: false
+
+adapter:
+  name: "ngboost"   # or "sklearn_random_forest"
+  params:
+    distribution: "Normal"
+    score: "NLL"
+    base_max_depth: 3
+    base_min_samples_leaf: 5
+
+search:
+  name: "optuna"
+  n_trials: 30
+  space:
+    n_estimators: {type: "int", low: 200, high: 1500}
+    learning_rate: {type: "loguniform", low: 1e-3, high: 1e-1}
+    base_max_depth: {type: "int", low: 2, high: 8}
+    base_min_samples_leaf: {type: "int", low: 1, high: 32}
+
+evaluate:
+  metrics: ["rmse", "nll"]
+  calibration: ["pit", "coverage@0.9"]
+
+governance:
+  rules:
+    - {metric: "rmse", improve_pct: 1.0}
+    - {metric: "coverage@0.9", min: 0.86, max: 0.94}
+
+storage:
+  registry: "mlruns"
+  artifacts_dir: "artifacts"
